@@ -1,0 +1,127 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Configuration;
+using System.Web.Mvc;
+using HtmlAgilityPack;
+using NseOpenInterestWatch.EntityFramework;
+
+namespace NseOpenInterestWatch.Controllers
+{
+    public class HomeController : Controller
+    {
+//        private NseToolsContext dbContext;
+//        public HomeController()
+//        {
+//            dbContext = new DbContext();
+//        }
+        public ActionResult Index()
+        {
+            ScrapNseBankNiftyData();
+            return View();
+        }
+
+        public ActionResult About()
+        {
+            ViewBag.Message = "Your application description page.";
+
+            return View();
+        }
+
+        public ActionResult Contact()
+        {
+            ViewBag.Message = "Your contact page.";
+
+            return View();
+        }
+
+        private void ScrapNseBankNiftyData()
+        {
+            string[] bnfRange = ConfigurationManager.AppSettings["BNfStrikePriceRange"].Split(',');
+
+            var web = new HtmlWeb();
+            HtmlDocument doc =
+                web.Load(
+                    "https://www.nseindia.com/live_market/dynaContent/live_watch/option_chain/optionKeys.jsp?symbolCode=-9999&symbol=BANKNIFTY&symbol=BANKNIFTY&instrument=OPTIDX&date=-&segmentLink=17&segmentLink=17");
+
+//            doc
+
+            foreach (HtmlNode table in doc.DocumentNode.SelectNodes("//table"))
+            {
+                Console.WriteLine("Found: " + table.Id);
+                if (table.Id == "octable")
+                {
+                    using (var context = new NseToolsContext())
+                    {
+                        var records = new List<BankNiftyOiHistory>();
+                        foreach (HtmlNode row in table.SelectNodes("tr"))
+                        {
+                            Console.WriteLine("row");
+                            string innerHtml = row.InnerHtml;
+                            HtmlNodeCollection allCells = row.SelectNodes("td");
+                            if (allCells.Count > 10 &&
+                                !string.IsNullOrWhiteSpace(allCells[11].InnerText) &&
+                                Convert.ToDecimal(allCells[11].InnerText) >= Convert.ToInt16(bnfRange[0]) &&
+                                Convert.ToDecimal(allCells[11].InnerText) <= Convert.ToInt16(bnfRange[1]))
+                            {
+                                var record = new BankNiftyOiHistory();
+                                //                        Chart
+                                //                        OI	                         YES
+                                record.CeOi = Convert.ToInt32(allCells[1].InnerText.Replace(",", ""));
+                                //                        Chng in OI                         YES
+                                record.CeChange = Convert.ToInt32(allCells[2].InnerText.Replace(",", ""));
+                                //                        Volume
+                                //                        IV
+                                //                        LTP
+                                //                        Net Chng	
+                                //                        Bid Qty
+                                //                        Bid Price	
+                                //                        Ask Price	
+                                //                        Ask Qty
+                                //                        Strike Price                         YES
+                                record.StrikePrice =
+                                    Convert.ToInt32(Convert.ToDecimal(allCells[11].InnerText.Replace(",", "")));
+                                //                        Bid Qty
+                                //                        Bid Price
+                                //                        Ask Price 
+                                //                        Ask Qty 
+                                //                        Net Chng
+                                //                        LTP
+                                //                        IV
+                                //                        Volume
+                                //                        Chng in OI                          YES
+                                record.PeChange = Convert.ToInt32(allCells[20].InnerText.Replace(",", ""));
+                                //                        OI                          YES
+                                record.PeOi = Convert.ToInt32(allCells[21].InnerText.Replace(",", ""));
+                                //                        Chart
+
+
+                                record.ModifiedDateTime = DateTime.Now;
+                                records.Add(record);
+
+//                            innerHtml = innerHtml.Replace(",", "");
+////                        string replacement = Regex.Replace(innerText, @"\t|\n|\r", ",");
+//                            string replacement = Regex.Replace(innerHtml, @"\n", ",");
+//                            var csvRow = replacement.Split(',');
+//                            csvRow.ForEach(x => x = x.Trim());
+//
+//                            foreach (HtmlNode cell in row.SelectNodes("th|td"))
+//                            {
+//                                Console.WriteLine("cell: " + cell.InnerText);
+//                            }
+                            }
+                        }
+
+                        //add the row
+                        context.BankNiftyOiHistories.AddRange(records);
+                        context.SaveChanges();
+                    }
+                }
+            }
+        }
+
+        private void GetNseBankNiftyData()
+        {
+            
+        }
+    }
+}

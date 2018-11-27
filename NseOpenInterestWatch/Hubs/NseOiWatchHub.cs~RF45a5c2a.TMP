@@ -1,0 +1,20 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using Microsoft.AspNet.SignalR;
+
+namespace NseOpenInterestWatch.Hubs
+{
+    public class NseOiWatchHub : Hub
+    {
+        public void LetsChat(string Cl_Name, string Cl_Message)
+        {
+
+            Clients.All.NewMessage(Cl_Name, Cl_Message);
+
+        }
+
+
+    }
+}

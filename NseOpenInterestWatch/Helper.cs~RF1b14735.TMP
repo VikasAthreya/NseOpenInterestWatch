@@ -1,0 +1,18 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Configuration;
+using System.Linq;
+using System.Web;
+
+namespace NseOpenInterestWatch
+{
+    public class Helper
+    {
+//        public List<int> GetConfiguredBNfStrikePrices()
+//        {
+//            var BNfStrikePriceRange = ConfigurationManager.AppSettings["BNfStrikePriceRange"];
+//
+//            
+//        }
+    }
+}

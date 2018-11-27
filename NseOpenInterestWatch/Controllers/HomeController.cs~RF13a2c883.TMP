@@ -1,0 +1,86 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using System.Web.Mvc;
+using HtmlAgilityPack;
+
+namespace NseOpenInterestWatch.Controllers
+{
+    public class HomeController : Controller
+    {
+        public ActionResult Index()
+        {
+            GetNseBankNiftyData();
+            return View();
+        }
+
+        public ActionResult About()
+        {
+            ViewBag.Message = "Your application description page.";
+
+            return View();
+        }
+
+        public ActionResult Contact()
+        {
+            ViewBag.Message = "Your contact page.";
+
+            return View();
+        }
+
+        private void GetNseBankNiftyData()
+        {
+            HtmlWeb web = new HtmlAgilityPack.HtmlWeb();
+            HtmlDocument doc = web.Load("https://www.nseindia.com/live_market/dynaContent/live_watch/option_chain/optionKeys.jsp?symbolCode=-9999&symbol=BANKNIFTY&symbol=BANKNIFTY&instrument=OPTIDX&date=-&segmentLink=17&segmentLink=17");
+
+//            doc
+
+            foreach (HtmlNode table in doc.DocumentNode.SelectNodes("//table"))
+            {
+                Console.WriteLine("Found: " + table.Id);
+                if (table.Id == "octable")
+                {
+                    foreach (HtmlNode row in table.SelectNodes("tr"))
+                    {
+                        Console.WriteLine("row");
+
+                        var innerText = row.InnerText;
+
+                        innerText.Replace(",", "");
+//                        Chart
+//                        OI	                         YES
+//                        Chng in OI                         YES
+//                        Volume
+//                        IV
+//                        LTP
+//                        Net Chng	
+//                        Bid Qty
+//                        Bid Price	
+//                        Ask Price	
+//                        Ask Qty
+//                        Strike Price                         YES
+//                        Bid Qty
+//                        Bid Price
+//                        Ask Price 
+//                        Ask Qty 
+//                        Net Chng
+//                        LTP
+//                        IV
+//                        Volume
+//                        Chng in OI                          YES
+//                        OI                          YES
+//                        Chart
+
+                        foreach (HtmlNode cell in row.SelectNodes("th|td"))
+                        {
+                            Console.WriteLine("cell: " + cell.InnerText);
+                        }
+                    }
+                }
+
+                
+            }
+        }
+    }
+}

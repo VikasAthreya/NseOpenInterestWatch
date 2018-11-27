@@ -1,0 +1,154 @@
+﻿@{
+    ViewBag.Title = "Home Page";
+}
+@section scripts{
+    @Scripts.Render("https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.6.0/Chart.min.js");
+    @Scripts.Render("~/Scripts/Code/account.js");
+    @Scripts.Render("~/signalr/hubs");
+ }
+
+<style>
+ .custom-control{
+  background-color: grey;
+}
+</style>
+
+@*<div class="jumbotron">*@
+@*    <h1>ASP.NET</h1>*@
+@*    <p class="lead">ASP.NET is a free web framework for building great Web sites and Web applications using HTML, CSS and JavaScript.</p>*@
+@*    <p><a href="http://asp.net" class="btn btn-primary btn-lg">Learn more &raquo;</a></p>*@
+@*</div>*@
+@**@
+@*<div class="row">*@
+@*    <div class="col-md-4">*@
+@*        <h2>Getting started</h2>*@
+@*        <p>*@
+@*            ASP.NET MVC gives you a powerful, patterns-based way to build dynamic websites that*@
+@*            enables a clean separation of concerns and gives you full control over markup*@
+@*            for enjoyable, agile development.*@
+@*        </p>*@
+@*        <p><a class="btn btn-default" href="http://go.microsoft.com/fwlink/?LinkId=301865">Learn more &raquo;</a></p>*@
+@*    </div>*@
+@*    <div class="col-md-4">*@
+@*        <h2>Get more libraries</h2>*@
+@*        <p>NuGet is a free Visual Studio extension that makes it easy to add, remove, and update libraries and tools in Visual Studio projects.</p>*@
+@*        <p><a class="btn btn-default" href="http://go.microsoft.com/fwlink/?LinkId=301866">Learn more &raquo;</a></p>*@
+@*    </div>*@
+@*    <div class="col-md-4">*@
+@*        <h2>Web Hosting</h2>*@
+@*        <p>You can easily find a web hosting company that offers the right mix of features and price for your applications.</p>*@
+@*        <p><a class="btn btn-default" href="http://go.microsoft.com/fwlink/?LinkId=301867">Learn more &raquo;</a></p>*@
+@*    </div>*@
+@*</div>*@
+
+<div class="container-fluid" >
+    <div class="row">
+@*        <div class="d-flex p-2 bd-highlight">*@
+@*            df*@
+@*        </div>*@
+        <div class="col-sm-1 border border-primary rounded bg-light">
+            <p class="font-weight-bold text-center">Strike Price</p>
+            <ul class="list-group">
+@*                do it dynamically*@
+                @{
+                    var allStrikes = Helper.GetConfiguredBNfStrikePrices();
+                    foreach (var strike in allStrikes)
+                    {
+                        <li class="list-group-item">@strike<input id="chk-@(strike)" type="checkbox" class="float-right custom-control" checked></li>
+                    }
+                }
+    
+@*                <li class="list-group-item">26000<input type="checkbox" class="float-right custom-control"></li>*@
+@*                <li class="list-group-item">26100<input type="checkbox" class="float-right custom-control"></li>*@
+@*                <li class="list-group-item">26200<input type="checkbox" class="float-right custom-control"></li>*@
+@*                <li class="list-group-item">26300<input type="checkbox" class="float-right custom-control"></li>*@
+@*                <li class="list-group-item">26400<input type="checkbox" class="float-right custom-control"></li>*@
+@*                <li class="list-group-item">26500<input type="checkbox" class="float-right custom-control"></li>*@
+@*                <li class="list-group-item">26600<input type="checkbox" class="float-right custom-control"></li>*@
+@*                <li class="list-group-item">26700<input type="checkbox" class="float-right custom-control"></li>*@
+@*                <li class="list-group-item">26800<input type="checkbox" class="float-right custom-control"></li>*@
+@*                <li class="list-group-item">26900<input type="checkbox" class="float-right custom-control"></li>*@
+@*                <li class="list-group-item">27000<input type="checkbox" class="float-right custom-control"></li>*@
+
+            </ul>
+
+        </div>
+        <div class="col-sm-11 border border-success rounded">
+
+
+            RIGHT
+            <div class="container-fluid ">
+@*                @for (var i = 0; i <= Helper.GetConfiguredBNfStrikePrices().Count; i++)*@
+@*                {*@
+@*                    <div class="col-md-6 border border-warning @(@i%2!=0?"float-right":"float-left")">*@
+@*                        <canvas id="chart-@(i)"> </canvas>*@
+@*                    </div>*@
+                @*                }*@
+                @foreach (var strike in allStrikes)
+                    {
+                    <div class="col-md-6 border border-warning @(@strike%1000==0?"float-right":"float-left")">
+                        <canvas id="chart-@(strike)"> </canvas>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@**@
+@*@for (int i = 0; i < 10; i++)*@
+@*{*@
+@*    *@
+@*    <div style="font-family: Corbel; font-size: small ;text-align:center " class="row">*@
+@*      <div style="width:100%;height:100%">*@
+@*            <canvas id="myChart@(i)" style="padding: 0;margin: auto;display: block; "> </canvas>*@
+@*       </div>*@
+@*    </div>*@
+@*}*@
+
+<script>
+//    $.ajax({
+//        type: "POST",
+//        url: "/Home/NewChart",
+//        contentType: "application/json; charset=utf-8",
+//        dataType: "json",
+//        //on success
+//        success: function (chData) {
+//            var aData = chData;
+//            alert(chData);
+//
+//            var aLabels = aData[0];
+//            alert(aLabels);
+//            var aDatasets1 = aData[1];
+//            alert(aDatasets1);
+//
+//            var dataT = {
+//                labels: aLabels,
+//                datasets: [{
+//                    label: "Test Data",
+//                    data: aDatasets1,
+//                    fill: false,
+//                    backgroundColor: ["rgba(54, 162, 235, 0.2)", "rgba(255, 99, 132, 0.2)", "rgba(255, 159, 64, 0.2)", "rgba(255, 205, 86, 0.2)", "rgba(75, 192, 192, 0.2)", "rgba(153, 102, 255, 0.2)", "rgba(201, 203, 207, 0.2)"],
+//                    borderColor: ["rgb(54, 162, 235)", "rgb(255, 99, 132)", "rgb(255, 159, 64)", "rgb(255, 205, 86)", "rgb(75, 192, 192)", "rgb(153, 102, 255)", "rgb(201, 203, 207)"],
+//                    borderWidth: 1
+//                }]
+//            };
+//            var ctx = $("#myChart").get(0).getContext("2d");
+//            //chart config
+//            var myNewChart = new Chart(ctx, {
+//                type: 'line',
+//                data: dataT,
+//                options: {
+//                    responsive: true,
+//                    title: { display: true, text: 'CHART.JS DEMO CHART' },
+//                    legend: { position: 'bottom' },
+//                    scales: {
+//                        xAxes: [{ gridLines: { display: false }, display: true, scaleLabel: { display: false, labelString: '' } }],
+//                        yAxes: [{ gridLines: { display: false }, display: true, scaleLabel: { display: false, labelString: '' }, ticks: { stepSize: 50, beginAtZero: true } }]
+//                    },
+//                }
+//            });
+//        }
+//    });
+
+</script>

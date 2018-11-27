@@ -1,0 +1,50 @@
+﻿@{
+    ViewBag.Title = "Home Page";
+}
+@section scripts{
+    @Scripts.Render("https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.6.0/Chart.min.js");
+    @Scripts.Render("~/Scripts/Code/account.js");
+    @Scripts.Render("~/signalr/hubs");
+ }
+
+<style>
+ .custom-control{
+  background-color: grey;
+}
+</style>
+
+
+<div class="container-fluid" >
+    <div class="row">
+
+        <div class="col-sm-1 border border-primary rounded bg-light">
+            <p class="font-weight-bold text-center">Strike Price</p>
+            <ul class="list-group">
+
+                @{
+                    var allStrikes = Helper.GetConfiguredBNfStrikePrices();
+                    foreach (var strike in allStrikes)
+                    {
+                        <li class="list-group-item">@strike
+                            <input id="chk-@(strike)" type="checkbox" class="float-right custom-control" checked data-strike-price="@strike" data-hidden="true">
+                        </li>
+                    }
+                }
+
+            </ul>
+
+        </div>
+        <div class="col-sm-11 border border-success rounded">
+            <div class="container-fluid ">
+                @foreach (var strike in allStrikes)
+                {
+                    <div data-strike-price="@strike" data-hidden="true" class="col-md-6 border border-warning @(@strike/100%2==0?"float-right":"float-left")">
+                        <h5 class="text-center"><span class="badge badge-info">@strike</span></h5>
+
+                        <canvas id="chart-@(strike)"> </canvas>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

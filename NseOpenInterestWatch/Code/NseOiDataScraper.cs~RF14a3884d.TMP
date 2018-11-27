@@ -1,0 +1,86 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+
+namespace NseOpenInterestWatch.Code
+{
+    public class NseOiDataScraper //: INseDataScraper
+    {
+        const string NSE_BULK_DEALS_DIALY = "https://www.nseindia.com/products/dynaContent/equities/equities/bulkdeals.jsp?symbol=&segmentLink=13&symbolCount=&dateRange=day&fromDate=&toDate=&dataType=DEALS";
+
+        public List<NseBulkDeals> GetBulkDeals()
+        {
+            List<NseBulkDeals> allDeals = null;
+
+            try
+            {
+                using (var client = new WebClient())
+                {
+                    client.Headers.Add("Host", "www.nseindia.com");
+                    client.Headers.Add("Accept", "text / html,application / xhtml + xml,application / xml; q = 0.9,image / webp,image / apng,*/*;q=0.8");
+                    //client.Headers.Add("Accept-Encoding", "gzip, deflate, br");
+                    client.Headers.Add("Accept-Language", "en,en-US;q=0.8,es;q=0.6");
+                    client.Headers.Add("Cache-Control", "max-age=0");
+                    //client.Headers.Add("Connection", "keep-alive");
+                    client.Headers.Add("Upgrade-Insecure-Requests", "1");
+                    client.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.113 Safari/537.36");
+
+                    var result = client.DownloadData(NSE_BULK_DEALS_DIALY);
+
+                    string responseStr = Encoding.ASCII.GetString(result);
+                    HtmlDocument doc = new HtmlDocument();
+
+                    var encoding = doc.DetectEncodingHtml(responseStr);
+                    doc.LoadHtml(responseStr);
+                    var csvContentDiv = doc.GetElementbyId("csvContentDiv");
+                    var innerText = csvContentDiv.InnerText;
+                    var innerTexHtml = csvContentDiv.InnerHtml;
+                    int id = 2;
+                    var alldata = innerTexHtml.Split(new char[] { ':' }).Skip(1).Reverse().Skip(1).Reverse().Select(v => NseBulkDeals.FromCsv(v, id++)).ToList();
+
+                    if (!isAlreadyDownloaded(alldata[0].Date))
+                    {
+
+
+                        //var tobeInserted = NseBulkDeals.FromCsv(innerTexHtml);
+
+
+                        // TODO: do something with the returned content from the servlet
+                        using (var context = new db_Entities())
+                        {
+                            //context.NseBulkDeals.Add(alldata[0]);
+                            context.NseBulkDeals.AddRange(alldata);
+
+                            context.SaveChanges();
+                        }
+
+                    }
+                    var nseJob = JobManager.GetSchedule("BseDailyJob");
+                    nseJob.ToRunEvery(1).Days().At(18, 0).WeekdaysOnly();
+                }
+            }
+            catch (WebException ex)
+            {
+                var nseJob = JobManager.GetSchedule("NseDailyJob");
+                nseJob.ToRunEvery(15).Minutes();
+            }
+
+
+
+            return allDeals;
+        }
+
+        private bool isAlreadyDownloaded(DateTime date)
+        {
+            using (var context = new db_Entities())
+            {
+                var previousData = context.NseBulkDeals.OrderByDescending(x => x.Date).ToList();
+                if (previousData[0].Date == date)
+                    return true;
+                return false;
+            }
+        }
+    }
+
+}
